@@ -10,11 +10,13 @@
     <!-- Web Application Manifest -->
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles/main.css">
-    <script src="scripts/GameOfLife.js"></script>
 </head>
 <body>
 <div class="canvasWrapper">
     <canvas id="canv" width="500px" height="380px"></canvas>
 </div>
+
+<!-- This must be loaded after the dom is done rendering so that we can get the canvas element -->
+<script src="scripts/GameOfLife.js"></script>
 </body>
 </html>
