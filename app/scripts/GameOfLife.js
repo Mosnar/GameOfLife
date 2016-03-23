@@ -8,8 +8,8 @@
  */
 (function () {
     var GameOfLife = {
-        col: 20,
-        row: 20,
+        col: 5,
+        row: 5,
 
         width: 500,
         height: 380,
@@ -20,7 +20,9 @@
         cfgDrawGrid: true,
 
         helpers: {},
-        eventHandlers: {}
+        eventHandlers: {},
+
+        data: []
     };
 
     /**
@@ -40,6 +42,7 @@
         this.drawCells();
 
         this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
+        this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
         this.helpers.parent = this;
         this.self = this;
     };
@@ -66,19 +69,50 @@
         this.ctx.stroke();
     };
 
-    GameOfLife.drawCells = function () {
+    GameOfLife.drawCells = function (cells) {
+        // cells.forEach(function(el) {
+        //
+        // });
         var cellWidth = this.width / this.col;
         var cellHeight = this.height / this.row;
         this.ctx.fillStyle = '#fff';
         this.ctx.fillRect(0, 0, cellWidth, cellHeight);
     };
 
-    GameOfLife.handleMouseMove = function(pos) {
-        console.log(pos);
+    GameOfLife.activateCell = function (cell) {
+        var cellWidth = this.width / this.col;
+        var cellHeight = this.height / this.row;
+
+        var x = cellWidth * cell.x;
+        var y = cellHeight * cell.y;
+
+        this.ctx.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+        this.ctx.fillRect(x, y, cellWidth, cellHeight);
+    };
+
+    GameOfLife.deactivateCell = function (cell) {
+
+    };
+
+    GameOfLife.clear = function () {
+        this.ctx.clear();
+    };
+
+    GameOfLife.handleMouseMove = function (pos) {
+        // console.log(pos);
+        this.activateCell(pos);
+    };
+
+    GameOfLife.handleMouseClick = function(pos) {
+        this.activateCell(pos);
     };
 
     GameOfLife.eventHandlers.mouseMove = function (evt) {
         this.handleMouseMove(this.helpers.translateMousePos(this.helpers.getRelativeMousePos(evt)));
+    };
+
+    GameOfLife.eventHandlers.mouseClick = function (evt) {
+        this.handleMouseClick(this.helpers.translateMousePos(this.helpers.getRelativeMousePos(evt)));
     };
 
     /**
@@ -86,7 +120,7 @@
      * @param evt
      * @returns {{x: number, y: number}}
      */
-    GameOfLife.helpers.getRelativeMousePos = function(evt) {
+    GameOfLife.helpers.getRelativeMousePos = function (evt) {
         var rect = this.parent.canvas.getBoundingClientRect();
         var x = evt.clientX - rect.left;
         var y = evt.clientY - rect.top;
@@ -98,13 +132,12 @@
      * @param pos
      * @returns {{x: number, y: number}}
      */
-    GameOfLife.helpers.translateMousePos = function(pos) {
+    GameOfLife.helpers.translateMousePos = function (pos) {
         var cellWidth = this.parent.width / this.parent.col;
         var cellHeight = this.parent.height / this.parent.row;
 
         var xPos = Math.floor(pos.x / cellWidth);
         var yPos = Math.floor(pos.y / cellHeight);
-
         return {x: xPos, y: yPos};
     };
 
