@@ -29,27 +29,39 @@
      * Called on page load - initalizes the GameOfLife board
      */
     GameOfLife.init = function () {
+        this.helpers.parent = this;
+        // Get reference to DOM element and a 2d canvas
         this.canvas = document.getElementById("canv");
         this.ctx = this.canvas.getContext('2d');
 
+        // Get the latest dimensions of the canvas element
         this.width = this.canvas.width;
         this.height = this.canvas.height;
 
-        if (this.cfgDrawGrid) {
-            this.drawGrid();
+        // Render the grid
+        this.drawGrid();
+
+        // Initialize 2D array of data
+        for (var c = 0; c < this.col; c++) {
+            this.data[c] = [];
+            for (var r = 0; r < this.row; r++) {
+                this.data[c][r] = 0;
+            }
         }
 
+        console.log("Initialized data", this.data);
+
+        // this.data[2][0] = 1;
         this.drawCells();
 
-        this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
+        // Attach event listeners to canvas
+        // this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
-        this.helpers.parent = this;
-        this.self = this;
     };
 
 
     /**
-     *
+     * Render a grid
      */
     GameOfLife.drawGrid = function () {
         var cellWidth = this.width / this.col;
@@ -69,25 +81,29 @@
         this.ctx.stroke();
     };
 
-    GameOfLife.drawCells = function (cells) {
-        // cells.forEach(function(el) {
-        //
-        // });
-        var cellWidth = this.width / this.col;
-        var cellHeight = this.height / this.row;
-        this.ctx.fillStyle = '#fff';
-        this.ctx.fillRect(0, 0, cellWidth, cellHeight);
-    };
 
     GameOfLife.activateCell = function (cell) {
-        var cellWidth = this.width / this.col;
-        var cellHeight = this.height / this.row;
+        // TODO: This needs to render the cell. Expand to helper method
+        if(this.data[cell.x][cell.y] === 1) {
+            this.data[cell.x][cell.y] = 0;
+        } else {
+            this.data[cell.x][cell.y] = 1;
+        }
+        console.log(this.data);
+        this.clear();
+        this.drawCells();
 
-        var x = cellWidth * cell.x;
-        var y = cellHeight * cell.y;
+    };
 
-        this.ctx.fillStyle = '#'+(Math.random()*0xFFFFFF<<0).toString(16);
-        this.ctx.fillRect(x, y, cellWidth, cellHeight);
+
+    GameOfLife.drawCells = function () {
+        for (var c = 0; c < this.col; c++) {
+            for (var r = 0; r < this.row; r++) {
+                if(this.data[c][r] === 1) {
+                    this.activateCell({x: c, y: r});
+                }
+            }
+        }
     };
 
     GameOfLife.deactivateCell = function (cell) {
@@ -95,7 +111,8 @@
     };
 
     GameOfLife.clear = function () {
-        this.ctx.clear();
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.drawGrid();
     };
 
     GameOfLife.handleMouseMove = function (pos) {
@@ -103,7 +120,7 @@
         this.activateCell(pos);
     };
 
-    GameOfLife.handleMouseClick = function(pos) {
+    GameOfLife.handleMouseClick = function (pos) {
         this.activateCell(pos);
     };
 
@@ -128,16 +145,24 @@
     };
 
     /**
+     *
+     * @returns {{w: number, h: number}}
+     */
+    GameOfLife.helpers.getCellDimensions = function () {
+        var cellWidth = this.parent.width / this.parent.col;
+        var cellHeight = this.parent.height / this.parent.row;
+        return {w: cellWidth, h: cellHeight};
+    };
+
+    /**
      * Translates relative mouse coordinates into cell coordinates
      * @param pos
      * @returns {{x: number, y: number}}
      */
     GameOfLife.helpers.translateMousePos = function (pos) {
-        var cellWidth = this.parent.width / this.parent.col;
-        var cellHeight = this.parent.height / this.parent.row;
-
-        var xPos = Math.floor(pos.x / cellWidth);
-        var yPos = Math.floor(pos.y / cellHeight);
+        var cellDim = this.getCellDimensions();
+        var xPos = Math.floor(pos.x / cellDim.h);
+        var yPos = Math.floor(pos.y / cellDim.w);
         return {x: xPos, y: yPos};
     };
 
