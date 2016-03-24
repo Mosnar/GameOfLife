@@ -8,8 +8,8 @@
  */
 (function () {
     var GameOfLife = {
-        col: 5,
-        row: 5,
+        col: 64,
+        row: 64,
 
         width: 500,
         height: 380,
@@ -20,7 +20,8 @@
         config: {
             drawGrid: true,
             colorGrid: '#ddd',
-            colorCell: '#fff'
+            colorCell: '#fff',
+            speed: 6000
         },
 
         helpers: {},
@@ -60,6 +61,15 @@
         // Attach event listeners to canvas
         // this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
+        this.stepAndRender();
+    };
+
+    GameOfLife.stepAndRender = function() {
+        this.logicalStep();
+        this.clear();
+        this.drawCells();
+        console.log("Done");
+        setTimeout(function() {GameOfLife.stepAndRender();}, this.config.speed);
     };
 
     GameOfLife.loadData = function () {
@@ -180,6 +190,39 @@
                 if(this.data[c][r] === 1) {
                     this.renderCell({x: c, y: r});
                 }
+            }
+        }
+    };
+
+    GameOfLife.logicalStep = function () {
+        /*
+         Game of Life Rules
+         Source: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+         1) Any live cell with fewer than two live neighbours dies, as if caused by under-population.
+         2) Any live cell with two or three live neighbours lives on to the next generation.
+         3) Any live cell with more than three live neighbours dies, as if by over-population.
+         4) Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+         */
+
+        var neighbors, tempCell;
+        for (var x = 0; x < this.col; x++) {
+            for (var y = 0; y < this.row; y++) {
+                tempCell = {x: x, y: y};
+                neighbors = this.getCellNeighbors(tempCell);
+                // Live cell rules:
+                if (this.data[x][y] === 1) {
+                    if (neighbors.length < 2 || neighbors.length > 3) {
+                        this.data[x][y] = 0;
+                        console.log("Killing", tempCell);
+                    }
+                // Dead cell rules:
+                } else {
+                    if (neighbors.length == 3) {
+                        console.log("Activating", tempCell);
+                        this.data[x][y] = 1;
+                    }
+                }
+
             }
         }
     };
