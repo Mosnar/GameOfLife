@@ -17,7 +17,11 @@
         canvas: null,
         ctx: null,
 
-        cfgDrawGrid: true,
+        config: {
+            drawGrid: true,
+            colorGrid: '#ddd',
+            colorCell: '#fff'
+        },
 
         helpers: {},
         eventHandlers: {},
@@ -51,7 +55,6 @@
 
         console.log("Initialized data", this.data);
 
-        // this.data[2][0] = 1;
         this.drawCells();
 
         // Attach event listeners to canvas
@@ -59,11 +62,16 @@
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
     };
 
+    GameOfLife.loadData = function () {
+
+    };
+
 
     /**
      * Render a grid
      */
     GameOfLife.drawGrid = function () {
+        if (!this.config.drawGrid) return;
         var cellWidth = this.width / this.col;
         var cellHeight = this.height / this.row;
 
@@ -77,22 +85,30 @@
             this.ctx.lineTo(this.width, y);
         }
 
-        this.ctx.strokeStyle = "#ddd";
+        this.ctx.strokeStyle = this.config.colorGrid;
         this.ctx.stroke();
     };
 
 
     GameOfLife.activateCell = function (cell) {
-        // TODO: This needs to render the cell. Expand to helper method
         if(this.data[cell.x][cell.y] === 1) {
             this.data[cell.x][cell.y] = 0;
         } else {
             this.data[cell.x][cell.y] = 1;
         }
-        console.log(this.data);
         this.clear();
         this.drawCells();
 
+    };
+
+    GameOfLife.renderCell = function (cell) {
+        var dim = this.helpers.getCellDimensions();
+
+        var x = dim.w * cell.x;
+        var y = dim.h * cell.y;
+
+        this.ctx.fillStyle = this.config.colorCell;
+        this.ctx.fillRect(x, y, dim.w, dim.h);
     };
 
 
@@ -100,7 +116,7 @@
         for (var c = 0; c < this.col; c++) {
             for (var r = 0; r < this.row; r++) {
                 if(this.data[c][r] === 1) {
-                    this.activateCell({x: c, y: r});
+                    this.renderCell({x: c, y: r});
                 }
             }
         }
@@ -116,7 +132,6 @@
     };
 
     GameOfLife.handleMouseMove = function (pos) {
-        // console.log(pos);
         this.activateCell(pos);
     };
 
