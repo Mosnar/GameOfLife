@@ -271,11 +271,11 @@
         if (this.running) {
             this.running = false;
             this.$btnPlay.innerText = "Play";
-            this.$btnStep.removeAttribute('disabled', true);
+            this.$btnStep.removeAttribute('disabled');
         } else {
             this.running = true;
             this.$btnPlay.innerText = "Pause";
-            this.$btnStep.setAttribute('disabled', true);
+            this.$btnStep.setAttribute('disabled', 'true');
             this.stepAndRender();
         }
         evt.preventDefault();
