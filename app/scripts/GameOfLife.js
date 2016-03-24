@@ -66,6 +66,9 @@
 
     };
 
+    GameOfLife.exportData = function () {
+
+    };
 
     /**
      * Render a grid
@@ -89,18 +92,77 @@
         this.ctx.stroke();
     };
 
-
+    /**
+     *
+     * @param cell
+     */
     GameOfLife.activateCell = function (cell) {
-        if(this.data[cell.x][cell.y] === 1) {
-            this.data[cell.x][cell.y] = 0;
-        } else {
-            this.data[cell.x][cell.y] = 1;
-        }
+        // Return early if possible
+        if(this.data[cell.x][cell.y] === 1) return;
+        this.data[cell.x][cell.y] = 1;
+
+        this.getCellNeighbors(cell);
+
+        // Clear the grid and re-render the cells
         this.clear();
         this.drawCells();
-
     };
 
+    /**
+     *
+     * @param cell
+     */
+    GameOfLife.deactivateCell = function (cell) {
+        // Return early if possible
+        if(!this.data[cell.x][cell.y]) return;
+        this.data[cell.x][cell.y] = 0;
+
+        // Clear the grid and re-render the cells
+        this.clear();
+        this.drawCells();
+    };
+
+    /**
+     * Gets all activated neighbor cells surrounding a cell
+     * @param cell
+     * @returns {Array}
+     */
+    GameOfLife.getCellNeighbors = function(cell) {
+        var neighbors = [];
+
+        var tempX, tempY, tempCell;
+        // Check all 8 bordering cells for occupancy
+        for (var i = -1; i <= 1 ; i++) {
+            for (var j = -1; j <= 1; j++) {
+                // Skip origin cell
+                if (i == 0 && j == 0) continue;
+                tempX = cell.x + i;
+                tempY = cell.y + j;
+                tempCell = {x: tempX, y: tempY};
+                // If the cell is in the bounds of the canvas and it's activated, add it to result set
+                if (this.helpers.isCellValid(tempCell) && this.data[tempCell.x][tempCell.y] === 1) {
+                    neighbors.push(tempCell);
+                }
+            }
+        }
+        return neighbors;
+    };
+
+    /**
+     * Checks if a cell is within the bounds of the map
+     * @param cell
+     * @returns {boolean}
+     */
+    GameOfLife.helpers.isCellValid = function(cell) {
+        if (cell.x < 0 || cell.y < 0) return false;
+        if (cell.x >= this.parent.col || cell.y >= this.parent.row) return false;
+        return true;
+    };
+
+    /**
+     * Draws a cell on the canvas
+     * @param cell {{x: number, y: number}}
+     */
     GameOfLife.renderCell = function (cell) {
         var dim = this.helpers.getCellDimensions();
 
@@ -120,10 +182,6 @@
                 }
             }
         }
-    };
-
-    GameOfLife.deactivateCell = function (cell) {
-
     };
 
     GameOfLife.clear = function () {
@@ -160,7 +218,7 @@
     };
 
     /**
-     *
+     * Calculates the size of each cell based on config and canvas size
      * @returns {{w: number, h: number}}
      */
     GameOfLife.helpers.getCellDimensions = function () {
@@ -171,18 +229,19 @@
 
     /**
      * Translates relative mouse coordinates into cell coordinates
-     * @param pos
+     * @param pos {{x: number, y: number}}
      * @returns {{x: number, y: number}}
      */
     GameOfLife.helpers.translateMousePos = function (pos) {
+        // Get the width and height of each individual cell
         var cellDim = this.getCellDimensions();
+        // Calculate the cell from the grid based on x,y coords
         var xPos = Math.floor(pos.x / cellDim.h);
         var yPos = Math.floor(pos.y / cellDim.w);
         return {x: xPos, y: yPos};
     };
 
 
-    // Event Listeners //
     // Initialize GameOfLife once the page is done loading
     window.addEventListener('load', GameOfLife.init(), false);
 })();
