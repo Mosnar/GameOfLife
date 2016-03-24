@@ -8,8 +8,8 @@
  */
 (function () {
     var GameOfLife = {
-        col: 64,
-        row: 64,
+        col: 8,
+        row: 8,
 
         width: 500,
         height: 380,
@@ -21,7 +21,7 @@
             drawGrid: true,
             colorGrid: '#ddd',
             colorCell: '#fff',
-            speed: 6000
+            speed: 1000
         },
 
         helpers: {},
@@ -38,6 +38,8 @@
         // Get reference to DOM element and a 2d canvas
         this.canvas = document.getElementById("canv");
         this.ctx = this.canvas.getContext('2d');
+        this.$btnStep = document.getElementById("btnStep");
+        this.$btnPlay = document.getElementById("btnPlay");
 
         // Get the latest dimensions of the canvas element
         this.width = this.canvas.width;
@@ -47,10 +49,10 @@
         this.drawGrid();
 
         // Initialize 2D array of data
-        for (var c = 0; c < this.col; c++) {
-            this.data[c] = [];
-            for (var r = 0; r < this.row; r++) {
-                this.data[c][r] = 0;
+        for (var x = 0; x < this.col; x++) {
+            this.data[x] = [];
+            for (var y = 0; y < this.row; y++) {
+                this.data[x][y] = 0;
             }
         }
 
@@ -61,7 +63,8 @@
         // Attach event listeners to canvas
         // this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
-        this.stepAndRender();
+        this.$btnStep.addEventListener('click', this.eventHandlers.stepClick.bind(this), true);
+        // this.stepAndRender();
     };
 
     GameOfLife.stepAndRender = function() {
@@ -69,7 +72,7 @@
         this.clear();
         this.drawCells();
         console.log("Done");
-        setTimeout(function() {GameOfLife.stepAndRender();}, this.config.speed);
+        // setTimeout(function() {GameOfLife.stepAndRender();}, this.config.speed);
     };
 
     GameOfLife.loadData = function () {
@@ -110,8 +113,6 @@
         // Return early if possible
         if(this.data[cell.x][cell.y] === 1) return;
         this.data[cell.x][cell.y] = 1;
-
-        this.getCellNeighbors(cell);
 
         // Clear the grid and re-render the cells
         this.clear();
@@ -205,26 +206,35 @@
          */
 
         var neighbors, tempCell;
+        var tempArray = this.data.map(function(arr) {
+            return arr.slice();
+        });
+
         for (var x = 0; x < this.col; x++) {
             for (var y = 0; y < this.row; y++) {
                 tempCell = {x: x, y: y};
                 neighbors = this.getCellNeighbors(tempCell);
                 // Live cell rules:
                 if (this.data[x][y] === 1) {
-                    if (neighbors.length < 2 || neighbors.length > 3) {
-                        this.data[x][y] = 0;
-                        console.log("Killing", tempCell);
+                    if (neighbors.length < 2) {
+                        tempArray[x][y] = 0;
+                        console.log("Killing [<2]", tempCell);
+                    }
+                    if (neighbors.length > 3) {
+                        tempArray[x][y] = 0;
+                        console.log("Killing [>3]", tempCell);
                     }
                 // Dead cell rules:
                 } else {
                     if (neighbors.length == 3) {
-                        console.log("Activating", tempCell);
-                        this.data[x][y] = 1;
+                        console.log("Activating [=3]", tempCell);
+                        tempArray[x][y] = 1;
                     }
                 }
 
             }
         }
+        this.data = tempArray;
     };
 
     GameOfLife.clear = function () {
@@ -246,6 +256,12 @@
 
     GameOfLife.eventHandlers.mouseClick = function (evt) {
         this.handleMouseClick(this.helpers.translateMousePos(this.helpers.getRelativeMousePos(evt)));
+    };
+
+    GameOfLife.eventHandlers.stepClick = function (evt) {
+        this.stepAndRender();
+        evt.preventDefault();
+        return false;
     };
 
     /**
