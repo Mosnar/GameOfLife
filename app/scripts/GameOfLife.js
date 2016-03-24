@@ -8,8 +8,8 @@
  */
 (function () {
     var GameOfLife = {
-        col: 8,
-        row: 8,
+        col: 20,
+        row: 20,
 
         width: 500,
         height: 380,
@@ -17,11 +17,13 @@
         canvas: null,
         ctx: null,
 
+        running: false,
+
         config: {
             drawGrid: true,
             colorGrid: '#ddd',
             colorCell: '#fff',
-            speed: 1000
+            speed: 500
         },
 
         helpers: {},
@@ -56,31 +58,32 @@
             }
         }
 
-        console.log("Initialized data", this.data);
-
         this.drawCells();
 
         // Attach event listeners to canvas
         // this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
         this.$btnStep.addEventListener('click', this.eventHandlers.stepClick.bind(this), true);
-        // this.stepAndRender();
+        this.$btnPlay.addEventListener('click', this.eventHandlers.playClick.bind(this), true);
     };
 
     GameOfLife.stepAndRender = function() {
         this.logicalStep();
         this.clear();
         this.drawCells();
-        console.log("Done");
-        // setTimeout(function() {GameOfLife.stepAndRender();}, this.config.speed);
+        if (this.running) {
+            setTimeout(function () {
+                GameOfLife.stepAndRender();
+            }, this.config.speed);
+        }
     };
 
     GameOfLife.loadData = function () {
-
+        // TODO:
     };
 
     GameOfLife.exportData = function () {
-
+        // TODO:
     };
 
     /**
@@ -218,16 +221,16 @@
                 if (this.data[x][y] === 1) {
                     if (neighbors.length < 2) {
                         tempArray[x][y] = 0;
-                        console.log("Killing [<2]", tempCell);
+                        // console.log("Killing [<2]", tempCell);
                     }
                     if (neighbors.length > 3) {
                         tempArray[x][y] = 0;
-                        console.log("Killing [>3]", tempCell);
+                        // console.log("Killing [>3]", tempCell);
                     }
                 // Dead cell rules:
                 } else {
                     if (neighbors.length == 3) {
-                        console.log("Activating [=3]", tempCell);
+                        // console.log("Activating [=3]", tempCell);
                         tempArray[x][y] = 1;
                     }
                 }
@@ -260,6 +263,21 @@
 
     GameOfLife.eventHandlers.stepClick = function (evt) {
         this.stepAndRender();
+        evt.preventDefault();
+        return false;
+    };
+
+    GameOfLife.eventHandlers.playClick = function (evt) {
+        if (this.running) {
+            this.running = false;
+            this.$btnPlay.innerText = "Play";
+            this.$btnStep.removeAttribute('disabled', true);
+        } else {
+            this.running = true;
+            this.$btnPlay.innerText = "Pause";
+            this.$btnStep.setAttribute('disabled', true);
+            this.stepAndRender();
+        }
         evt.preventDefault();
         return false;
     };
