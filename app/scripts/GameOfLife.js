@@ -33,7 +33,7 @@
     };
 
     /**
-     * Called on page load - initalizes the GameOfLife board
+     * Called on page load - initializes the GameOfLife board
      */
     GameOfLife.init = function () {
         this.helpers.parent = this;
@@ -58,15 +58,21 @@
             }
         }
 
+        // Render canvas
         this.drawCells();
 
         // Attach event listeners to canvas
-        // this.canvas.addEventListener('mousemove', this.eventHandlers.mouseMove.bind(this), true);
+        // When you click the canvas, spawn a cell
         this.canvas.addEventListener('click', this.eventHandlers.mouseClick.bind(this), true);
+        // When the "Step" button is clicked, go to next iteration
         this.$btnStep.addEventListener('click', this.eventHandlers.stepClick.bind(this), true);
+        // When the play button is clicked...
         this.$btnPlay.addEventListener('click', this.eventHandlers.playClick.bind(this), true);
     };
 
+    /**
+     * Run next iteration ad draw
+     */
     GameOfLife.stepAndRender = function() {
         this.logicalStep();
         this.clear();
@@ -91,15 +97,14 @@
      */
     GameOfLife.drawGrid = function () {
         if (!this.config.drawGrid) return;
-        var cellWidth = this.width / this.col;
-        var cellHeight = this.height / this.row;
+        var dim = this.getCellDimensions();
 
-        for (var x = cellWidth; x < this.width; x += cellWidth) {
+        for (var x = dim.w; x < this.width; x += dim.w) {
             this.ctx.moveTo(x, 0);
             this.ctx.lineTo(x, this.width);
         }
 
-        for (var y = cellHeight; y < this.height; y += cellHeight) {
+        for (var y = dim.h; y < this.height; y += dim.h) {
             this.ctx.moveTo(0, y);
             this.ctx.lineTo(this.width, y);
         }
@@ -109,7 +114,7 @@
     };
 
     /**
-     *
+     * Activate a cell on the board
      * @param cell
      */
     GameOfLife.activateCell = function (cell) {
@@ -198,6 +203,10 @@
         }
     };
 
+    /**
+     * Actual game of life code. Updates the array. Note the use of a buffer array. I had considered creating a better
+     * defined "Cell" object with an update state to avoid this, but decided against it in exchange for simplicity.
+     */
     GameOfLife.logicalStep = function () {
         /*
          Game of Life Rules
@@ -230,7 +239,7 @@
                 // Dead cell rules:
                 } else {
                     if (neighbors.length == 3) {
-                        // console.log("Activating [=3]", tempCell);
+                        // console.log("Spawning [=3]", tempCell);
                         tempArray[x][y] = 1;
                     }
                 }
@@ -240,15 +249,26 @@
         this.data = tempArray;
     };
 
+    /**
+     * Clear the canvas
+     */
     GameOfLife.clear = function () {
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.drawGrid();
     };
 
+    /**
+     * MouseMove handler - unused in this version
+     * @param pos
+     */
     GameOfLife.handleMouseMove = function (pos) {
         this.activateCell(pos);
     };
 
+    /**
+     * Mouse click handler
+     * @param pos
+     */
     GameOfLife.handleMouseClick = function (pos) {
         this.activateCell(pos);
     };
@@ -261,12 +281,22 @@
         this.handleMouseClick(this.helpers.translateMousePos(this.helpers.getRelativeMousePos(evt)));
     };
 
+    /**
+     * Called when the step button is clicked - moves one cycle forward
+     * @param evt
+     * @returns {boolean}
+     */
     GameOfLife.eventHandlers.stepClick = function (evt) {
         this.stepAndRender();
         evt.preventDefault();
         return false;
     };
 
+    /**
+     * Plays/Pauses the simulation
+     * @param evt
+     * @returns {boolean}
+     */
     GameOfLife.eventHandlers.playClick = function (evt) {
         if (this.running) {
             this.running = false;
