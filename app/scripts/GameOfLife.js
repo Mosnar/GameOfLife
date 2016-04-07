@@ -97,7 +97,7 @@
      */
     GameOfLife.drawGrid = function () {
         if (!this.config.drawGrid) return;
-        var dim = this.getCellDimensions();
+        var dim = this.helpers.getCellDimensions();
 
         for (var x = dim.w; x < this.width; x += dim.w) {
             this.ctx.moveTo(x, 0);
